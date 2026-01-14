@@ -1,0 +1,7 @@
+{
+  "name": "Helixar AI",
+  "description": "A powerful AI creative workspace for generating viral content, debugging code, and humanizing AI text.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
