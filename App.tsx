@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { Message, ChatSession, ModelType } from './types';
 import { mockChatHistory } from './data/mockChatHistory';
+import { mockDevChat } from './data/mockDevChat';
+import { mockDesignChat } from './data/mockDesignChat';
 import { Sidebar } from './components/Sidebar';
 import { ChatMessage } from './components/ChatMessage';
 import { ChatInput } from './components/ChatInput';
@@ -52,7 +54,12 @@ const App: React.FC = () => {
 
       // Inject Mock Session if not present
       const mockId = 'mock-validation-sprint';
-      if (!parsed.find((s: ChatSession) => s.id === mockId)) {
+      const devMockId = 'mock-dev-architect';
+
+      let newSessions: ChatSession[] = [...parsed];
+      let needsUpdate = false;
+
+      if (!newSessions.find((s: ChatSession) => s.id === mockId)) {
         const mockSession: ChatSession = {
           id: mockId,
           title: 'Validation Sprint',
@@ -60,14 +67,40 @@ const App: React.FC = () => {
           updatedAt: 1705290045000,
           isGroup: false
         };
-        parsed.unshift(mockSession);
+        newSessions.unshift(mockSession);
+        needsUpdate = true;
       }
 
-      setSessions(parsed);
+      if (!newSessions.find((s: ChatSession) => s.id === devMockId)) {
+        const devSession: ChatSession = {
+          id: devMockId,
+          title: 'Full Stack Arch',
+          messages: mockDevChat,
+          updatedAt: 1705300090000,
+          isGroup: false
+        };
+        newSessions.unshift(devSession);
+        needsUpdate = true;
+      }
+
+      const designMockId = 'mock-ui-design';
+      if (!newSessions.find((s: ChatSession) => s.id === designMockId)) {
+        const designSession: ChatSession = {
+          id: designMockId,
+          title: 'Neon UI Concept',
+          messages: mockDesignChat,
+          updatedAt: 1705310090000,
+          isGroup: false
+        };
+        newSessions.unshift(designSession);
+        needsUpdate = true;
+      }
+
+      setSessions(newSessions);
       if (parsed.length > 0) setCurrentSessionId(parsed[0].id);
       else createNewSession();
     } else {
-      // Create with mock session
+      // Create with mock sessions
       const mockSession: ChatSession = {
         id: 'mock-validation-sprint',
         title: 'Validation Sprint',
@@ -75,8 +108,25 @@ const App: React.FC = () => {
         updatedAt: 1705290045000,
         isGroup: false
       };
-      setSessions([mockSession]);
-      setCurrentSessionId(mockSession.id);
+
+      const devSession: ChatSession = {
+        id: 'mock-dev-architect',
+        title: 'Full Stack Arch',
+        messages: mockDevChat,
+        updatedAt: 1705300090000,
+        isGroup: false
+      };
+
+      const designSession: ChatSession = {
+        id: 'mock-ui-design',
+        title: 'Neon UI Concept',
+        messages: mockDesignChat,
+        updatedAt: 1705310090000,
+        isGroup: false
+      };
+
+      setSessions([designSession, devSession, mockSession]);
+      setCurrentSessionId(designSession.id);
     }
   }, []);
 

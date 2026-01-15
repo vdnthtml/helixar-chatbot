@@ -82,6 +82,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isLogoHovered, setIsLogoHovered] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
+  // Hover Panel State
+  const [hoverPanel, setHoverPanel] = useState<'projects' | 'history' | null>(null);
+  const [hoverPosition, setHoverPosition] = useState({ top: 0, left: 0 });
+  const hoverTimeout = useRef<any>(null);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
@@ -116,10 +121,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={onOpenSearch}
             className={`
-              flex items-center gap-3 transition-all mb-2
+              flex items-center gap-3 transition-all duration-200 ease-in-out mb-2
               ${isCollapsed
-                ? 'w-10 h-10 justify-center rounded-full bg-[#1a1a1a] text-white hover:bg-[#252525]'
-                : 'w-full px-3 py-2 rounded-xl text-left bg-[#1a1a1a] hover:bg-[#252525] text-[#8e8e93] hover:text-white'
+                ? 'w-10 h-10 justify-center rounded-full bg-[#1a1a1a] text-white hover:bg-[#252525] hover:scale-105 active:scale-95'
+                : 'w-full px-3 py-2 rounded-xl text-left bg-[#1a1a1a] hover:bg-[#252525] text-[#8e8e93] hover:text-white hover:pl-4'
               }
             `}
             title="Search"
@@ -158,8 +163,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Tree View Structure */}
         <div className={`flex flex-col ${isCollapsed ? 'items-center space-y-1' : 'space-y-6'}`}>
-          <div className={isCollapsed ? 'w-full flex justify-center' : ''}>
-            <div className={`flex items-center gap-3 ${isCollapsed ? 'justify-center w-10 h-10 rounded-xl hover:bg-[#1a1a1a] cursor-pointer text-[#e0e0e0]' : 'px-3 py-2 mb-0 text-[#e0e0e0] font-medium text-[14px]'}`}>
+          <div className={isCollapsed ? 'w-full flex justify-center relative' : ''}>
+            <div
+              className={`flex items-center gap-3 transition-all duration-200 ease-in-out ${isCollapsed ? 'justify-center w-10 h-10 rounded-xl hover:bg-[#1a1a1a] cursor-pointer text-[#e0e0e0] hover:scale-105 active:scale-95' : 'px-3 py-2 mb-0 text-[#e0e0e0] font-medium text-[14px] hover:text-white hover:translate-x-1'}`}
+              onMouseEnter={(e) => {
+                if (!isCollapsed) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                setHoverPanel('projects');
+                setHoverPosition({ top: rect.top, left: rect.right + 10 });
+              }}
+              onMouseLeave={() => {
+                hoverTimeout.current = setTimeout(() => setHoverPanel(null), 300);
+              }}
+            >
               <ProjectsIcon />
               {!isCollapsed && <span>Projects</span>}
             </div>
@@ -178,8 +194,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {/* History Section */}
-          <div className={`pb-10 ${isCollapsed ? 'w-full flex justify-center' : ''}`}>
-            <div className={`flex items-center gap-3 ${isCollapsed ? 'justify-center w-10 h-10 rounded-xl hover:bg-[#1a1a1a] cursor-pointer text-[#e0e0e0]' : 'px-3 py-2 mb-2 text-[#e0e0e0] font-medium text-[14px]'}`}>
+          <div className={`pb-10 ${isCollapsed ? 'w-full flex justify-center relative' : ''}`}>
+            <div
+              className={`flex items-center gap-3 transition-all duration-200 ease-in-out ${isCollapsed ? 'justify-center w-10 h-10 rounded-xl hover:bg-[#1a1a1a] cursor-pointer text-[#e0e0e0] hover:scale-105 active:scale-95' : 'px-3 py-2 mb-2 text-[#e0e0e0] font-medium text-[14px] hover:text-white hover:translate-x-1'}`}
+              onMouseEnter={(e) => {
+                if (!isCollapsed) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                setHoverPanel('history');
+                setHoverPosition({ top: rect.top - 20, left: rect.right + 10 }); // Slight offset up for history
+              }}
+              onMouseLeave={() => {
+                hoverTimeout.current = setTimeout(() => setHoverPanel(null), 300);
+              }}
+            >
               <HistoryIcon />
               {!isCollapsed && <span>History</span>}
             </div>
@@ -225,6 +252,101 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
         </div>
+
+        {/* Hover Panels (Fixed Position) */}
+        {hoverPanel && isCollapsed && (
+          <div
+            className={`fixed w-[240px] bg-[#1c1c1e] rounded-xl border border-[#333]/40 shadow-2xl z-[9999] overflow-hidden py-2 pl-1 pr-1 animate-in fade-in slide-in-from-left-1 duration-150`}
+            style={{ top: hoverPanel === 'projects' ? hoverPosition.top - 8 : hoverPosition.top - 12, left: hoverPosition.left - 4 }}
+            onMouseEnter={() => {
+              if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+            }}
+            onMouseLeave={() => setHoverPanel(null)}
+          >
+            {hoverPanel === 'projects' && (
+              <div>
+                <div className="px-3 py-1 mb-1 flex items-center justify-between">
+                  <span className="text-[14px] font-bold text-white tracking-tight">Projects</span>
+                  <button className="text-[#999] hover:text-white transition-colors p-1 hover:bg-[#2c2c2e] rounded-md"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+                </div>
+                <div className="space-y-0.5">
+                  <button className="flex items-center gap-3 w-full px-2 py-1.5 text-[13px] text-[#e0e0e0] hover:text-white transition-all duration-200 ease-in-out text-left group rounded-md hover:bg-[#2c2c2e] hover:pl-3">
+                    <span className="w-5 flex justify-center text-yellow-500"><SparklesIcon size={14} /></span>
+                    <span className="font-medium">Helixar research</span>
+                  </button>
+                  <button className="flex items-center gap-3 w-full px-2 py-1.5 text-[13px] text-[#9ca3af] hover:text-white transition-all duration-200 ease-in-out text-left rounded-md hover:bg-[#2c2c2e] hover:pl-3">
+                    <span className="w-5"></span>
+                    <span className="font-medium">See all</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {hoverPanel === 'history' && (
+              <div className="max-h-[60vh] overflow-y-auto no-scrollbar">
+                <div className="px-3 py-1 mb-2">
+                  <span className="text-[14px] font-bold text-white tracking-tight">History</span>
+                </div>
+                <div className="space-y-3">
+                  {/* Today Group */}
+                  {groupedChats.today.length > 0 && (
+                    <div>
+                      <h4 className="px-2 text-[12px] font-medium text-[#888] mb-0.5 ml-1">Today</h4>
+                      <div className="space-y-0.5">
+                        {groupedChats.today.map(session => (
+                          <button
+                            key={session.id}
+                            onClick={() => { onSelect(session.id); setHoverPanel(null); }}
+                            className={`w-full px-2 py-1.5 text-left text-[13px] rounded-md truncate transition-colors font-medium ${currentId === session.id ? 'bg-[#3a3a3c] text-white' : 'text-[#e0e0e0] hover:bg-[#2c2c2e] hover:text-white'}`}
+                          >
+                            {session.title || 'New chat'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {/* Yesterday Group */}
+                  {groupedChats.yesterday.length > 0 && (
+                    <div>
+                      <h4 className="px-2 text-[12px] font-medium text-[#888] mb-0.5 ml-1">Yesterday</h4>
+                      <div className="space-y-0.5">
+                        {groupedChats.yesterday.map(session => (
+                          <button
+                            key={session.id}
+                            onClick={() => { onSelect(session.id); setHoverPanel(null); }}
+                            className={`w-full px-2 py-1.5 text-left text-[13px] rounded-md truncate transition-colors font-medium ${currentId === session.id ? 'bg-[#3a3a3c] text-white' : 'text-[#e0e0e0] hover:bg-[#2c2c2e] hover:text-white'}`}
+                          >
+                            {session.title || 'New chat'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {/* Month Groups */}
+                  {Object.entries(groupedChats.older).map(([month, sessions]) => (
+                    <div key={month}>
+                      <h4 className="px-2 text-[12px] font-medium text-[#888] mb-0.5 ml-1">{month}</h4>
+                      <div className="space-y-0.5">
+                        {sessions.map(session => (
+                          <button
+                            key={session.id}
+                            onClick={() => { onSelect(session.id); setHoverPanel(null); }}
+                            className={`w-full px-2 py-1.5 text-left text-[13px] rounded-md truncate transition-colors font-medium ${currentId === session.id ? 'bg-[#3a3a3c] text-white' : 'text-[#e0e0e0] hover:bg-[#2c2c2e] hover:text-white'}`}
+                          >
+                            {session.title || 'New chat'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="px-3 pt-2 pb-1 mt-1">
+                  <button className="w-full text-left px-0 py-1 text-[12px] font-medium text-[#9ca3af] hover:text-white transition-colors">See all</button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Footer */}
@@ -233,13 +355,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center justify-between px-1">
             <button
               onClick={() => onOpenSettings('account')}
-              className="w-9 h-9 rounded-full overflow-hidden border border-[#2a2a2a] hover:border-white/20 transition-all"
+              className="w-9 h-9 rounded-full overflow-hidden border border-[#2a2a2a] hover:border-white/20 transition-all duration-200 hover:scale-105 active:scale-95"
             >
               <div className="w-full h-full bg-[#1a1a1a] flex items-center justify-center text-[11px] font-bold text-white">VS</div>
             </button>
             <button
               onClick={onToggleSidebar}
-              className="text-[#e0e0e0] hover:text-white transition-colors p-2 rounded-lg hover:bg-[#1a1a1a]"
+              className="text-[#e0e0e0] hover:text-white transition-all duration-200 p-2 rounded-lg hover:bg-[#1a1a1a] hover:rotate-90"
             >
               <SidebarToggleIcon />
             </button>
@@ -248,13 +370,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <>
             <button
               onClick={() => onOpenSettings('account')}
-              className="w-8 h-8 rounded-full overflow-hidden border border-[#2a2a2a] hover:border-white/20 transition-all mt-2"
+              className="w-8 h-8 rounded-full overflow-hidden border border-[#2a2a2a] hover:border-white/20 transition-all duration-200 mt-2 hover:scale-105 active:scale-95"
             >
               <div className="w-full h-full bg-[#1a1a1a] flex items-center justify-center text-[10px] font-bold text-white">VS</div>
             </button>
             <button
               onClick={onToggleSidebar}
-              className="text-[#e0e0e0] hover:text-white transition-colors p-2 rounded-lg hover:bg-[#1a1a1a] mb-2"
+              className="text-[#e0e0e0] hover:text-white transition-all duration-200 p-2 rounded-lg hover:bg-[#1a1a1a] mb-2 hover:rotate-90"
             >
               <SidebarToggleIcon />
             </button>
@@ -377,10 +499,10 @@ const NavButton = ({ onClick, icon, label, theme, collapsed }: any) => (
   <button
     onClick={onClick}
     className={`
-      flex items-center transition-all group rounded-lg
+      flex items-center transition-all duration-200 ease-in-out group rounded-lg
       ${collapsed
-        ? 'w-10 h-10 justify-center hover:bg-[#1a1a1a] text-[#e0e0e0] hover:text-white mb-1'
-        : `w-full gap-3 px-3 py-2 text-left ${theme === 'dark' ? 'text-[#e0e0e0] hover:text-white hover:bg-[#1a1a1a]' : 'hover:bg-[#e2e2e7]'}`
+        ? 'w-10 h-10 justify-center hover:bg-[#1a1a1a] text-[#e0e0e0] hover:text-white mb-1 hover:scale-105 active:scale-95'
+        : `w-full gap-3 px-3 py-2 text-left ${theme === 'dark' ? 'text-[#e0e0e0] hover:text-white hover:bg-[#1a1a1a] hover:pl-4' : 'hover:bg-[#e2e2e7] hover:pl-4'}`
       }
     `}
     title={collapsed ? label : ''}
