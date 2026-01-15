@@ -182,7 +182,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     if (isOpen) {
       // Map old 'account' or 'general' to 'personalization' or 'appearance' if needed, otherwise use initialSection
       if (initialSection === 'account') setActiveSection('personalization');
-      else if (initialSection === 'general') setActiveSection('appearance');
       else setActiveSection(initialSection || 'appearance');
     }
   }, [isOpen, initialSection]);
