@@ -119,14 +119,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, centered
 
       {/* Main Pill Input */}
       <div className={`
-        relative flex items-center w-full bg-[#121212] border border-[#2a2a2a] rounded-[26px] transition-all
-        focus-within:ring-1 focus-within:ring-[#444]
+        relative flex items-center w-full bg-[#101010] border border-white/10 rounded-[26px] transition-all shadow-lg
+        focus-within:ring-1 focus-within:ring-[#333]
         ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
       `}>
         {/* Left: Paperclip Button */}
         <button
           onClick={() => console.log('File upload')}
-          className="pl-4 pr-3 py-3 text-[#555] hover:text-white transition-colors"
+          className="pl-4 pr-3 py-3 text-[#777] hover:text-white transition-colors"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>
         </button>
@@ -137,8 +137,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, centered
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="How can Grok help?"
-          className="flex-1 bg-transparent border-none focus:ring-0 text-[16px] py-3 px-0 resize-none max-h-[200px] no-scrollbar text-white placeholder-[#555] font-sans leading-relaxed"
+          placeholder="How can Helixar help?"
+          className="flex-1 bg-transparent border-none focus:ring-0 text-[16px] py-4 px-0 resize-none max-h-[200px] no-scrollbar text-white placeholder-[#555] font-normal leading-relaxed"
         />
 
         {/* Right Group: Model Selector + Action Button */}

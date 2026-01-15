@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { Message, ChatSession, ModelType } from './types';
+import { mockChatHistory } from './data/mockChatHistory';
 import { Sidebar } from './components/Sidebar';
 import { ChatMessage } from './components/ChatMessage';
 import { ChatInput } from './components/ChatInput';
@@ -48,11 +49,34 @@ const App: React.FC = () => {
 
     if (saved) {
       const parsed = JSON.parse(saved);
+
+      // Inject Mock Session if not present
+      const mockId = 'mock-validation-sprint';
+      if (!parsed.find((s: ChatSession) => s.id === mockId)) {
+        const mockSession: ChatSession = {
+          id: mockId,
+          title: 'Validation Sprint',
+          messages: mockChatHistory,
+          updatedAt: 1705290045000,
+          isGroup: false
+        };
+        parsed.unshift(mockSession);
+      }
+
       setSessions(parsed);
       if (parsed.length > 0) setCurrentSessionId(parsed[0].id);
-      else createNewSession(); // Create temp session if no saved sessions
+      else createNewSession();
     } else {
-      createNewSession();
+      // Create with mock session
+      const mockSession: ChatSession = {
+        id: 'mock-validation-sprint',
+        title: 'Validation Sprint',
+        messages: mockChatHistory,
+        updatedAt: 1705290045000,
+        isGroup: false
+      };
+      setSessions([mockSession]);
+      setCurrentSessionId(mockSession.id);
     }
   }, []);
 
@@ -320,6 +344,13 @@ const App: React.FC = () => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-2 pointer-events-auto">
+            <button
+              onClick={createNewSession}
+              className="px-3 py-1.5 rounded-lg bg-[#1A1A1A] hover:bg-[#2A2A2D] text-white border border-[#333] font-medium text-[13px] transition-colors flex items-center gap-2"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              New Chat
+            </button>
             <button className="p-2 text-[#555] hover:text-white transition-colors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg></button>
             <button className="px-4 py-1.5 rounded-full bg-white text-black font-semibold text-[13px] hover:bg-neutral-200 transition-colors flex items-center gap-2">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
@@ -328,27 +359,24 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col items-center">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto relative flex flex-col items-center">
           {currentSession?.messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full px-4 text-center max-w-2xl w-full animate-fade-in pb-20">
-              <div className="mb-8 p-4 rounded-full bg-[#1a1a1a]">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" /><path d="M2.05 2.05h2l2 2h-2z" fill="white" /></svg>
+            <div key={currentSession?.id} className="flex flex-col items-center justify-center h-full px-4 text-center max-w-2xl w-full animate-scale-in pb-20">
+              <div className="mb-6">
+                <h1 className="text-4xl font-bold tracking-tight text-white mb-2">Helixar</h1>
+                <p className="text-gray-500 text-lg">Your creative intelligence engine.</p>
               </div>
-              <h2 className="text-2xl font-semibold text-white mb-8 tracking-tight">How can Helixar help?</h2>
               <ChatInput onSend={handleSendMessage} disabled={isTyping} centered />
             </div>
           ) : (
-            <div className="w-full max-w-4xl mx-auto px-4 py-20 space-y-8 pb-40">
+            <div className="w-full max-w-3xl mx-auto px-4 py-8 pb-40">
               {currentSession?.messages.map((msg) => (
                 <ChatMessage key={msg.id} message={msg} theme={theme} />
               ))}
               {isTyping && (
-                <div className="animate-pulse pl-4">
-                  <div className="flex items-center gap-2 text-[#8e8e93]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white/50 animate-bounce delay-0"></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-white/50 animate-bounce delay-100"></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-white/50 animate-bounce delay-200"></span>
-                  </div>
+                <div className="flex items-center gap-3 animate-slide-up-fade text-gray-400 mt-4 mb-14">
+                  <div className="w-5 h-5 rounded-full border-2 border-white/20 border-t-white animate-spin"></div>
+                  <span className="text-sm font-medium animate-pulse">Thinking...</span>
                 </div>
               )}
             </div>

@@ -4,29 +4,39 @@ import { ChatSession, ModelType } from '../types';
 import { SettingsSection } from './SettingsModal';
 
 // Helper function to group chats by time periods
+// Helper function to group chats by time periods
 const groupChatsByTime = (sessions: ChatSession[]) => {
-  const now = Date.now();
-  const oneDay = 24 * 60 * 60 * 1000;
-  const sevenDays = 7 * oneDay;
-
   const groups = {
     today: [] as ChatSession[],
     yesterday: [] as ChatSession[],
-    previous7Days: [] as ChatSession[],
-    older: [] as ChatSession[]
+    older: {} as Record<string, ChatSession[]>
   };
 
-  sessions.forEach(session => {
-    const diff = now - session.updatedAt;
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
 
-    if (diff < oneDay) {
+  sessions.forEach(session => {
+    const date = new Date(session.updatedAt);
+
+    const isToday = date.getDate() === now.getDate() &&
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear();
+
+    const isYesterday = date.getDate() === yesterday.getDate() &&
+      date.getMonth() === yesterday.getMonth() &&
+      date.getFullYear() === yesterday.getFullYear();
+
+    if (isToday) {
       groups.today.push(session);
-    } else if (diff < 2 * oneDay) {
+    } else if (isYesterday) {
       groups.yesterday.push(session);
-    } else if (diff < sevenDays) {
-      groups.previous7Days.push(session);
     } else {
-      groups.older.push(session);
+      const monthName = date.toLocaleString('default', { month: 'long' });
+      if (!groups.older[monthName]) {
+        groups.older[monthName] = [];
+      }
+      groups.older[monthName].push(session);
     }
   });
 
@@ -179,7 +189,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {/* Today Group */}
                 {groupedChats.today.length > 0 && (
                   <div>
-                    <h4 className="px-3 text-[12px] font-medium text-[#9ca3af] mb-1 pl-11">Yesterday</h4>
+                    <h4 className="px-3 text-[12px] font-medium text-[#9ca3af] mb-1 pl-11">Today</h4>
                     <div className="space-y-0.5">
                       {groupedChats.today.map(session => (
                         <SidebarChatItem key={session.id} session={session} isActive={currentId === session.id} onSelect={onSelect} onDelete={onDelete} onRename={onRename} theme={theme} />
@@ -188,10 +198,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 )}
 
-                {/* Jan Group (Mocked logic) */}
+                {/* Yesterday Group */}
                 {groupedChats.yesterday.length > 0 && (
                   <div>
-                    <h4 className="px-3 text-[12px] font-medium text-[#9ca3af] mb-1 pl-11">January</h4>
+                    <h4 className="px-3 text-[12px] font-medium text-[#9ca3af] mb-1 pl-11">Yesterday</h4>
                     <div className="space-y-0.5">
                       {groupedChats.yesterday.map(session => (
                         <SidebarChatItem key={session.id} session={session} isActive={currentId === session.id} onSelect={onSelect} onDelete={onDelete} onRename={onRename} theme={theme} />
@@ -200,17 +210,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 )}
 
-                {/* Older Group */}
-                {(groupedChats.previous7Days.length > 0 || groupedChats.older.length > 0) && (
-                  <div>
-                    <h4 className="px-3 text-[12px] font-medium text-[#9ca3af] mb-1 pl-11">2025</h4>
+                {/* Month Groups */}
+                {Object.entries(groupedChats.older).map(([month, sessions]) => (
+                  <div key={month}>
+                    <h4 className="px-3 text-[12px] font-medium text-[#9ca3af] mb-1 pl-11">{month}</h4>
                     <div className="space-y-0.5">
-                      {[...groupedChats.previous7Days, ...groupedChats.older].map(session => (
+                      {sessions.map(session => (
                         <SidebarChatItem key={session.id} session={session} isActive={currentId === session.id} onSelect={onSelect} onDelete={onDelete} onRename={onRename} theme={theme} />
                       ))}
                     </div>
                   </div>
-                )}
+                ))}
               </div>
             )}
           </div>
