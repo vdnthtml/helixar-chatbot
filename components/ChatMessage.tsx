@@ -58,7 +58,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const toggleDislike = () => setFeedback(prev => prev === 'dislike' ? null : 'dislike');
 
   return (
-    <div className={`flex w-full ${isUser ? 'justify-end mb-8' : 'justify-start mb-8'} last:mb-24 animate-in fade-in slide-in-from-bottom-2 duration-300 group`}>
+    <div className={`flex w-full ${isUser ? 'justify-end mb-8' : 'justify-start mb-14'} last:mb-24 animate-in fade-in slide-in-from-bottom-2 duration-300 group`}>
       {/* Message Bubble */}
       <div className={`
         relative max-w-full text-[15.5px] leading-relaxed font-normal
@@ -184,8 +184,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
             {/* Action Bar - Tap-to-Reveal Pill on Mobile, Hover on Desktop */}
             <div
               className={`
-                flex items-center gap-4 mt-2 z-10 
-                md:absolute md:top-full md:left-0 md:mt-3 md:bg-transparent md:border-none md:p-0
+                flex items-center gap-4 mt-3 z-10 
+                md:bg-transparent md:border-none md:p-0 md:-ml-1.5
                 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200
                 ${showActions ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none md:pointer-events-auto md:translate-y-0'}
               `}

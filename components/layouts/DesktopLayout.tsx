@@ -252,8 +252,10 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
                 </div>
 
                 {currentSession && currentSession.messages.length > 0 && (
-                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/90 to-transparent z-10 shrink-0">
-                        <ChatInput onSend={onSendMessage} disabled={isTyping} value={inputValue} onChange={setInputValue} />
+                    <div className="absolute bottom-0 left-0 right-0 py-6 bg-gradient-to-t from-black via-black/90 to-transparent z-10 shrink-0">
+                        <div className="w-full max-w-3xl mx-auto px-4">
+                            <ChatInput onSend={onSendMessage} disabled={isTyping} value={inputValue} onChange={setInputValue} />
+                        </div>
                     </div>
                 )}
             </main>
