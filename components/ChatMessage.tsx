@@ -23,6 +23,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
 
   const [feedback, setFeedback] = useState<'like' | 'dislike' | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showActions, setShowActions] = useState(false);
 
   const handleRegenerate = () => {
     // Placeholder for regeneration logic
@@ -57,7 +58,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const toggleDislike = () => setFeedback(prev => prev === 'dislike' ? null : 'dislike');
 
   return (
-    <div className={`flex w-full ${isUser ? 'justify-end mb-9' : 'justify-start mb-14'} last:mb-0 animate-slide-up-fade group`}>
+    <div className={`flex w-full ${isUser ? 'justify-end mb-8' : 'justify-start mb-8'} last:mb-24 animate-in fade-in slide-in-from-bottom-2 duration-300 group`}>
       {/* Message Bubble */}
       <div className={`
         relative max-w-full text-[15.5px] leading-relaxed font-normal
@@ -70,10 +71,14 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           <p className="whitespace-pre-wrap font-sans">{message.content}</p>
         ) : (
           <>
-            <div className="w-full [&>*:last-child]:!mb-0">
+            <div className={`w-full prose prose-invert max-w-none prose-p:text-gray-300 prose-p:leading-relaxed prose-headings:text-white prose-headings:font-semibold prose-strong:text-white prose-pre:my-0 [&>*:last-child]:!mb-0 ${isSpeaking ? 'opacity-80' : ''}`}>
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
+                  // Paragraph
+                  p({ children }) {
+                    return <p className="mb-4 last:mb-0">{children}</p>
+                  },
                   // Code Blocks
                   code({ node, inline, className, children, ...props }: any) {
                     const match = /language-(\w+)/.exec(className || '');
@@ -178,42 +183,52 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
               </ReactMarkdown>
             </div>
 
-            {/* Action Bar - Absolute Positioned in the 3x Gap */}
-            <div className="flex items-center gap-1 absolute top-full left-0 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-              <ActionButton
-                onClick={handleRegenerate}
-                icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" /><path d="M16 21h5v-5" /></svg>}
-                label="Regenerate"
-              />
-              <ActionButton
-                onClick={handleReadAloud}
-                icon={<svg width="15" height="15" viewBox="0 0 24 24" fill={isSpeaking ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" /></svg>}
-                label={isSpeaking ? "Stop" : "Read Aloud"}
-                active={isSpeaking}
-              />
-              <ActionButton
-                onClick={() => handleCopy(message.content)}
-                icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>}
-                label="Copy"
-              />
-              <ActionButton
-                onClick={handleShare}
-                icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>}
-                label="Share"
-              />
-              <div className="w-[1px] h-4 bg-[#333] mx-1"></div>
-              <ActionButton
-                onClick={toggleLike}
-                icon={<svg width="15" height="15" viewBox="0 0 24 24" fill={feedback === 'like' ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M7 10v12" /><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" /></svg>}
-                label="Good Response"
-                active={feedback === 'like'}
-              />
-              <ActionButton
-                onClick={toggleDislike}
-                icon={<svg width="15" height="15" viewBox="0 0 24 24" fill={feedback === 'dislike' ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M17 14V2" /><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z" /></svg>}
-                label="Bad Response"
-                active={feedback === 'dislike'}
-              />
+            {/* Action Bar - Tap-to-Reveal Pill on Mobile, Hover on Desktop */}
+            <div
+              className={`
+                flex items-center gap-4 mt-2 z-10 
+                md:absolute md:top-full md:left-0 md:mt-3 md:bg-transparent md:border-none md:p-0
+                md:opacity-0 md:group-hover:opacity-100 transition-all duration-200
+                ${showActions ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none md:pointer-events-auto md:translate-y-0'}
+              `}
+            >
+              <div className="flex items-center gap-1 bg-black/90 border border-white/10 rounded-full px-3 py-1 shadow-2xl backdrop-blur-md md:bg-transparent md:border-none md:p-0 md:shadow-none md:backdrop-blur-none">
+                <ActionButton
+                  onClick={handleRegenerate}
+                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" /><path d="M16 21h5v-5" /></svg>}
+                  label="Regenerate"
+                />
+                <ActionButton
+                  onClick={handleReadAloud}
+                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill={isSpeaking ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" /></svg>}
+                  label={isSpeaking ? "Stop" : "Read Aloud"}
+                  active={isSpeaking}
+                />
+                <ActionButton
+                  onClick={() => handleCopy(message.content)}
+                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>}
+                  label="Copy"
+                />
+                <div className="w-[1px] h-4 bg-[#333] mx-1 md:hidden"></div>
+                <ActionButton
+                  onClick={handleShare}
+                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>}
+                  label="Share"
+                />
+                <div className="w-[1px] h-4 bg-[#333] mx-1"></div>
+                <ActionButton
+                  onClick={toggleLike}
+                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill={feedback === 'like' ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M7 10v12" /><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" /></svg>}
+                  label="Good Response"
+                  active={feedback === 'like'}
+                />
+                <ActionButton
+                  onClick={toggleDislike}
+                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill={feedback === 'dislike' ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M17 14V2" /><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z" /></svg>}
+                  label="Bad Response"
+                  active={feedback === 'dislike'}
+                />
+              </div>
             </div>
           </>
         )}

@@ -144,6 +144,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             label="Chat"
             theme={theme}
             collapsed={isCollapsed}
+            isActive={!currentId || sessions.find(s => s.id === currentId)?.messages.length === 0}
           />
           <NavButton
             onClick={() => console.log('Voice')}
@@ -162,7 +163,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Tree View Structure */}
-        <div className={`flex flex-col ${isCollapsed ? 'items-center space-y-1' : 'space-y-6'}`}>
+        <div className={`flex flex-col ${isCollapsed ? 'items-center space-y-1' : 'space-y-1'}`}>
           <div className={isCollapsed ? 'w-full flex justify-center relative' : ''}>
             <div
               className={`flex items-center gap-3 transition-all duration-200 ease-in-out ${isCollapsed ? 'justify-center w-10 h-10 rounded-xl hover:bg-[#1a1a1a] cursor-pointer text-[#e0e0e0] hover:scale-105 active:scale-95' : 'px-3 py-2 mb-0 text-[#e0e0e0] font-medium text-[14px] hover:text-white hover:translate-x-1'}`}
@@ -194,7 +195,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {/* History Section */}
-          <div className={`pb-10 ${isCollapsed ? 'w-full flex justify-center relative' : ''}`}>
+          <div className={`pb-4 ${isCollapsed ? 'w-full flex justify-center relative' : ''}`}>
             <div
               className={`flex items-center gap-3 transition-all duration-200 ease-in-out ${isCollapsed ? 'justify-center w-10 h-10 rounded-xl hover:bg-[#1a1a1a] cursor-pointer text-[#e0e0e0] hover:scale-105 active:scale-95' : 'px-3 py-2 mb-2 text-[#e0e0e0] font-medium text-[14px] hover:text-white hover:translate-x-1'}`}
               onMouseEnter={(e) => {
@@ -350,7 +351,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Footer */}
-      <div className={`mt-auto border-t border-[#1a1a1a] transition-all duration-300 ${isCollapsed ? 'p-2 flex flex-col items-center gap-4 bg-black' : 'p-4 bg-black'}`}>
+      <div className={`mt-auto transition-all duration-300 ${isCollapsed ? 'p-2 flex flex-col items-center gap-4 bg-black/50 backdrop-blur-md' : 'p-4 bg-gradient-to-t from-black via-black to-transparent'}`}>
         {!isCollapsed ? (
           <div className="flex items-center justify-between px-1">
             <button
@@ -442,7 +443,7 @@ const SidebarChatItem: React.FC<SidebarChatItemProps> = ({ session, onSelect, on
         onClick={() => onSelect(session.id)}
         className={`flex items-center justify-between w-full py-1.5 px-3 pl-11 text-[13px] rounded-md transition-all text-left group ${isActive
           ? 'bg-[#262626] text-white font-medium'
-          : 'text-[#e0e0e0] font-normal hover:bg-[#1a1a1a] hover:text-white'
+          : 'text-gray-300 font-medium hover:bg-[#1a1a1a] hover:text-white'
           }`}
       >
         <span className="truncate pr-4">{session.title || 'New chat'}</span>
@@ -495,14 +496,21 @@ interface HelixItemProps {
 }
 
 // Helper Components for Cleaner Main Component
-const NavButton = ({ onClick, icon, label, theme, collapsed }: any) => (
+const NavButton = ({ onClick, icon, label, theme, collapsed, isActive }: any) => (
   <button
     onClick={onClick}
     className={`
       flex items-center transition-all duration-200 ease-in-out group rounded-lg
       ${collapsed
-        ? 'w-10 h-10 justify-center hover:bg-[#1a1a1a] text-[#e0e0e0] hover:text-white mb-1 hover:scale-105 active:scale-95'
-        : `w-full gap-3 px-3 py-2 text-left ${theme === 'dark' ? 'text-[#e0e0e0] hover:text-white hover:bg-[#1a1a1a] hover:pl-4' : 'hover:bg-[#e2e2e7] hover:pl-4'}`
+        ? 'w-10 h-10 justify-center hover:bg-[#1a1a1a] text-gray-300 hover:text-white mb-1 hover:scale-105 active:scale-95'
+        : `w-full gap-3 px-3 py-2 text-left ${
+        // Active State Logic
+        isActive
+          ? 'bg-white/10 text-white font-medium'
+          : theme === 'dark'
+            ? 'text-gray-300 font-medium hover:text-white hover:bg-white/5 hover:pl-4'
+            : 'hover:bg-[#e2e2e7] hover:pl-4'
+        }`
       }
     `}
     title={collapsed ? label : ''}

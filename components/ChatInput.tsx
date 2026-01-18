@@ -5,10 +5,13 @@ interface ChatInputProps {
   onSend: (text: string) => void;
   disabled: boolean;
   centered?: boolean;
+  value: string;
+  onChange: (text: string) => void;
+  mode?: 'desktop' | 'mobile';
 }
 
-export const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, centered }) => {
-  const [text, setText] = useState('');
+export const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, centered, value, onChange, mode = 'desktop' }) => {
+  // const [text, setText] = useState(''); // Removed internal state
   const [showModelMenu, setShowModelMenu] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -18,7 +21,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, centered
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
     }
-  }, [text]);
+  }, [value]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -38,9 +41,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, centered
   };
 
   const handleSend = () => {
-    if (text.trim() && !disabled) {
-      onSend(text);
-      setText('');
+    if (value.trim() && !disabled) {
+      onSend(value);
+      onChange('');
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
       setShowModelMenu(false);
     }
@@ -117,16 +120,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, centered
         </div>
       )}
 
-      {/* Main Pill Input */}
+      {/* Main Pill/Bar Input */}
       <div className={`
-        relative flex items-center w-full bg-[#101010] border border-white/10 rounded-[26px] transition-all shadow-lg
-        focus-within:ring-1 focus-within:ring-[#333]
+        relative flex items-center transition-all
+        ${mode === 'desktop'
+          ? 'w-full max-w-3xl mx-auto bg-[#101010] border border-white/10 rounded-[26px] shadow-lg focus-within:ring-1 focus-within:ring-[#333]'
+          : 'fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] left-4 right-4 h-14 bg-black/80 backdrop-blur-xl rounded-full px-4 z-50 shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-white/10 justify-between' // Mobile Command Capsule
+        }
         ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
       `}>
         {/* Left: Paperclip Button */}
         <button
           onClick={() => console.log('File upload')}
-          className="pl-4 pr-3 py-3 text-[#777] hover:text-white transition-colors"
+          className="pr-2 py-3 text-[#777] hover:text-white transition-colors flex-shrink-0"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>
         </button>
@@ -134,52 +140,64 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, centered
         <textarea
           ref={textareaRef}
           rows={1}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="How can Helixar help?"
-          className="flex-1 bg-transparent border-none focus:ring-0 text-[16px] py-4 px-0 resize-none max-h-[200px] no-scrollbar text-white placeholder-[#555] font-normal leading-relaxed"
+          enterKeyHint="send"
+          placeholder={mode === 'mobile' ? "Ask Helixar" : "How can Helixar help?"}
+          className={`
+            bg-transparent border-none focus:ring-0 text-[16px] resize-none no-scrollbar text-white placeholder-[#666] font-normal leading-relaxed
+            ${mode === 'mobile' ? 'flex-1 py-3 px-2 h-full' : 'flex-1 py-4 max-h-[200px]'}
+          `}
         />
 
         {/* Right Group: Model Selector + Action Button */}
-        <div className="flex items-center gap-2 pr-2.5">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {/* Model Selector (Fast) */}
           <button
             onClick={() => setShowModelMenu(!showModelMenu)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1e1e1e] hover:bg-[#2a2a2a] text-[#e0e0e0] transition-colors border border-transparent hover:border-[#333]"
+            className={`flex items-center justify-center rounded-full bg-[#1e1e1e] hover:bg-[#2a2a2a] text-[#e0e0e0] transition-colors border border-transparent hover:border-[#333] ${mode === 'mobile' ? 'w-10 h-10 p-0 text-white' : 'gap-1.5 px-3 py-1.5'}`}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
-            <span className="text-[13px] font-medium">Fast</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="opacity-50"><path d="m6 9 6 6 6-6" /></svg>
+            {mode === 'mobile' ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
+                <span className="text-[13px] font-medium">Fast</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="opacity-50"><path d="m6 9 6 6 6-6" /></svg>
+              </>
+            )}
           </button>
 
           {/* Dynamic Action Button: Voice or Send */}
           <button
-            onClick={text.trim() ? handleSend : () => console.log('Voice')}
+            onClick={value.trim() ? handleSend : () => console.log('Voice')}
             disabled={disabled}
             className={`
-               w-9 h-9 flex items-center justify-center rounded-full transition-all shrink-0
-               ${text.trim()
+               w-10 h-10 flex items-center justify-center rounded-full transition-all shrink-0
+               ${value.trim()
                 ? 'bg-white text-black hover:bg-neutral-200 active:scale-95'
                 : 'bg-[#1e1e1e] text-white hover:bg-[#2a2a2a] active:scale-95'
               }
              `}
           >
-            {text.trim() ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+            {value.trim() ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
             ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="22" /></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M2 12h20" /><path d="M12 12 2.5 2.5" /><path d="M12 12l9.5-9.5" /><path d="M12 12 2.5 21.5" /><path d="M12 12l9.5 9.5" /></svg>
             )}
           </button>
         </div>
       </div>
 
-      <div className="text-center mt-3">
-        <p className="text-[11px] text-[#444] font-medium tracking-wide">
-          Helixar can make mistakes. Check important info.
-        </p>
-      </div>
-    </div>
+      {mode === 'desktop' && (
+        <div className="text-center mt-3">
+          <p className="text-[11px] text-[#444] font-medium tracking-wide">
+            Helixar can make mistakes. Check important info.
+          </p>
+        </div>
+      )}
+    </div >
   );
 };
 
