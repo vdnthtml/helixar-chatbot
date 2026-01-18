@@ -76,9 +76,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                 remarkPlugins={[remarkGfm]}
                 components={{
                   // Paragraph
-                  p({ children }) {
-                    return <p className="mb-4 last:mb-0">{children}</p>
-                  },
+
                   // Code Blocks
                   code({ node, inline, className, children, ...props }: any) {
                     const match = /language-(\w+)/.exec(className || '');
